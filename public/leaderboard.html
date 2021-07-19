@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="theme.css" />
+</head>
+
+<body class="mainApp">
+    <!--Navbar-->
+    <ul class="nav">
+        <li><a href="dashboard" title="Dashboard">Dashboard</a></li>
+        <li><a href="notifications" title="Notifications">Notifications</a></li>
+        <li><a href="" class="active" title="Leaderboard/Rewards">Leaderboard/Rewards</a></li>
+        <!--Add sign out functionality-->
+        <li style="float:right"><a id="signOutButton" href="sign-out" title="Sign Out">Sign Out</a></li>
+    </ul>
+
+    <div class="container">
+        <section class="a">
+            <h1>Leaderboard:</h1>
+            <table>
+                <tr>
+                    <th class="nametitle">Name"</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td>{CHILD NAME}&ensp;&ensp;</td>
+                    <td class="score">17</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="b">
+            <h1>Rewards:</h1><br />
+            <!--[BEGIN]PARENTS ONLY-->
+            <button id="createNewRewardButtonForModal"><span><i class="far fa-edit"></i> Add Reward</span></button>
+            <div id="createNewRewardModal" class="modal-background">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="mainForm">
+                        <form action="" name="createNewRewardForm">
+                            <table>
+                                <tr>
+                                    <th>Reward Name:</th>
+                                    <td><input type="text" name="rewardName" placeholder="Reward Name..." /></td>
+                                </tr>
+                                <tr>
+                                    <th>Reward Description:</th>
+                                    <td><textarea name="rewardDescription" placeholder="Reward Description...."></textarea></td>
+                                </tr>
+                                <tr>
+                                    <th>Price:</th>
+                                    <td><input type="number" name="pointValue" placeholder="Points..." /></td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align: center;" colspan="2"><button class="button" type="submit"><span>Add Reward</span></button></td>
+                                    <!--BACKEND: Once reward is added, close modal-->
+                                </tr>
+                            </table>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <script>
+                var createNewRewardButtonForModal = document.querySelector("#createNewRewardButtonForModal");
+                var createNewRewardModal = document.querySelector("#createNewRewardModal");
+                var closeButton = document.querySelector(".close");
+                createNewRewardButtonForModal.onclick = () => {
+                    createNewRewardModal.style.display = "block";
+                };
+                closeButton.onclick = () => {
+                    createNewRewardModal.style.display = "none";
+                };
+            </script>
+            <!--[END]PARENTS ONLY-->
+
+            <div class="flexpool">
+                <!--Dump all prize cards here, sort from lowest price (top) to highest price (bottom)-->
+                <div class="card">
+                    <!-- Card 1 -->
+                    <img alt="reward" />
+                    <h2>{REWARD NAME}</h2>
+                    <p>{REWARD DESCRIPTION}</p>
+                    <p>{POINT VALUE}</p>
+                    <!-- CHILDREN ONLY -->
+                    <button class="button"><span>Purchase</span></button>
+                    <!--Make this button disabled if they cannot afford this-->
+                </div>
+
+            </div>
+        </section>
+    </div>
+    <img id="trippy_twisty_tabs" src="img/trippy_twisty_tabsCropped.png" />
+    <img id="trash_girl" src="img/trash_girl.png" />
+    <img id="moneybags_dad" src="img/moneybags_dad.png" />
+
+</body>
+
+</html>

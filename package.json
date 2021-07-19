@@ -1,0 +1,27 @@
+{
+    "name": "tiger-tabs",
+    "version": "0.0.1",
+    "description": "",
+    "main": "App.js",
+    "scripts": {
+        "start": "node App.js",
+        "test": "node App.js && start localhost:5000"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Mahdi03/tiger-tabs.git"
+    },
+    "author": "Mahdi Ayman, Victoria Nguyen",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^5.0.1",
+        "ejs": "^3.1.6",
+        "express": "^4.17.1",
+        "multer": "^1.4.2",
+        "path": "^0.12.7"
+    },
+    "bugs": {
+        "url": "https://github.com/Mahdi03/tiger-tabs/issues"
+    },
+    "homepage": "https://github.com/Mahdi03/tiger-tabs#readme"
+}
