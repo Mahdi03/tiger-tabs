@@ -131,6 +131,7 @@ ul.nav {
 }
 
 .mainForm input[type=text],
+.mainForm input[type=email],
 .mainForm input[type=password],
 .mainForm input[type=number],
 .mainForm input[type=date],
