@@ -152,6 +152,48 @@ ul.nav {
     display: none;
 }
 
+
+/*Begin styles for form validation*/
+
+.validInputField {
+    outline: 1px solid green;
+    outline: none;
+    border: 1px solid green;
+    box-shadow: 0 0 2.5px green;
+}
+
+.invalidInputField {
+    outline: none;
+    border: 1px solid red;
+    box-shadow: 0 0 5px red;
+}
+
+.validInputField+span,
+.invalidInputField+span {
+    position: relative;
+}
+
+.validInputField+span::before,
+.invalidInputField+span::before {
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.validInputField+span::before {
+    content: "\2714";
+    color: green;
+}
+
+.invalidInputField+span::before {
+    content: "\2716";
+    color: red;
+}
+
+
+/*End styles for form validation*/
+
 #output_image {
     border-radius: 50%;
     border: 1px solid black;

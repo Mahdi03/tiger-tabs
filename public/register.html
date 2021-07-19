@@ -17,7 +17,7 @@
             <p><a href="javascript:void(0);" onclick="document.querySelector('.register.main').style.display = 'none'; document.querySelector('.login.main').style.display = 'block';">Already Signed Up?</a></p>
         </div>
         <div class="mainForm">
-            <form name="registerForm" onsubmit="validateForms()" action="register" method="POST" enctype="multipart/form-data">
+            <form name="registerForm" action="register" method="POST" enctype="multipart/form-data">
                 <div class="flex">
                     <div class="left">
                         <table>
@@ -26,23 +26,32 @@
                                 <td><input type="text" required name="name" placeholder="Name..." /></td>
                             </tr>
                             <tr>
+                                <td colspan="2" id="emailErrMsg"></td>
+                            </tr>
+                            <tr>
                                 <th>Email:</th>
-                                <td><input type="email" required name="email" placeholder="Email..." /></td>
+                                <td><input type="email" required name="email" placeholder="Email..." /><span></span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" id="usernameErrMsg"></td>
                             </tr>
                             <tr>
                                 <th>Username:</th>
-                                <td><input type="text" required name="username" placeholder="Username..." /></td>
+                                <td><input type="text" required name="username" placeholder="Username..." /><span></span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" id="passwordErrMsg"></td>
                             </tr>
                             <tr>
                                 <th>Password:</th>
-                                <td><input type="password" id="password" required name="password" placeholder="Password..." /></td>
+                                <td><input type="password" id="password" required name="password" placeholder="Password..." /><span></span></td>
                             </tr>
                             <tr>
                                 <th>Confirm Password:</th>
-                                <td><input type="password" id="confirm_password" required name="confirmPassword" placeholder="Confirm Password..." onkeyup="check();" /></td>
+                                <td><input type="password" id="confirmPassword" required name="confirmPassword" placeholder="Confirm Password..." /><span></span></td>
                             </tr>
                             <tr>
-                                <td id="errormessage"></td>
+                                <td colspan="2" id="confirmPasswordErrMsg"></td>
                             </tr>
                         </table>
                     </div>
@@ -50,7 +59,7 @@
                         <div style="text-align: left;">
                             <p style="margin-bottom: 0;">Are you a parent or a child?</p>
                             <label>
-                                <input type="radio" name="parentOrChild" value="parent" required />
+                                <input id="parentRadio" type="radio" name="parentOrChild" value="parent" required />
                                 Parent
                             </label> &emsp;
                             <label>
@@ -58,8 +67,10 @@
                                 Child
                             </label>
                             <div id="familyid">
-                                <strong style="font-size: 1.5rem;">Family ID:</strong><input type="number" placeholder="Family ID." />
+                                <p id="familyIDErrMsg"></p>
+                                <strong style="font-size: 1.5rem;">Family ID:</strong><input type="text" name="familyID" pattern="[A-Z0-9]{6}" placeholder="Family ID..." /><span></span>
                             </div>
+                            <p style="margin-bottom: 0;">Last step, go ahead and upload a profile picture (less than 5MB) so your family can see who you are:</p>
                             <input type="file" accept="image/png, image/jpeg" onchange="preview_image(event)" />
                         </div>
                         <!--Preview Image-->
@@ -68,6 +79,186 @@
                 </div>
                 <button type="submit" class="button"><span>Register Now!</span></button>
             </form>
+            <script>
+                //All for Register Validation
+                //Global Vars
+                var registerForm = document.forms["registerForm"];
+                var usernameInputField = registerForm["username"];
+                var passwordInputField = registerForm["password"];
+                var confirmPasswordInputField = registerForm["confirmPassword"];
+                var emailInputField = registerForm["email"];
+                var parentOrChildRadioField = registerForm["parentOrChild"];
+                var familyIDInputField = registerForm["familyID"];
+                //Live Checks:
+                //First check if password is >= 8 upper letters, lower letters, numbers, special char
+                function checkPasswordValidity(password) {
+                    var errorMessage = "";
+                    if (!(password.length >= 8)) {
+                        //Password is too short
+                        errorMessage = "Your password needs to be 8 or more characters";
+                    }
+                    //Check if password has uppercase letters
+                    var arrOfUppercaseLettersFound = password.split("").filter((character) => {
+                        var returnValue = false;
+                        for (letter of "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("")) {
+                            if (character === letter) {
+                                returnValue = true;
+                            }
+                        }
+                        return returnValue;
+                    });
+                    if (arrOfUppercaseLettersFound.length === 0) {
+                        //Password has no uppercase letters
+                        errorMessage = "Password needs to have at least one uppercase letter";
+                    }
+                    //Check if password has lowercase letters
+                    var arrOfLowercaseLettersFound = password.split("").filter((character) => {
+                        var returnValue = false;
+                        for (letter of "abcdefghijklmnopqrstuvwxyz".split("")) {
+                            if (character === letter) {
+                                returnValue = true;
+                            }
+                        }
+                        return returnValue;
+                    });
+                    if (arrOfLowercaseLettersFound.length === 0) {
+                        //Password has no lowercase letters
+                        errorMessage = "Password needs to have at least one lowercase letter";
+                    }
+                    //Check if password has numbers
+                    var arrOfNumbersFound = password.split("").filter((character) => {
+                        var returnValue = false;
+                        for (letter of "1234567890".split("")) {
+                            if (String(character) === String(letter)) {
+                                returnValue = true;
+                            }
+                        }
+                        return returnValue;
+                    });
+                    if (arrOfNumbersFound.length === 0) {
+                        //Password has no numbers
+                        errorMessage = "Password should have at least one number"
+                    }
+                    //Check if password has special chars
+                    var arrOfSpecialCharsFound = password.split("").filter((character) => {
+                        var returnValue = false;
+                        for (letter of "!@#$%^&*()".split("")) {
+                            if (character === letter) {
+                                returnValue = true;
+                            }
+                        }
+                        return returnValue;
+                    });
+                    if (arrOfSpecialCharsFound.length === 0) {
+                        //Password has no special chars
+                        errorMessage = "Password requires one of the following special characters: " + "!@#$%^&*()".split("").join(" ");
+                    }
+                    return errorMessage;
+                }
+                passwordInputField.addEventListener("keyup", () => {
+                    //console.log(event);
+                    var errorMessage = checkPasswordValidity(passwordInputField.value);
+                    if (errorMessage === "") {
+                        //If there is no error message, donesies
+                        document.querySelector("#passwordErrMsg").innerHTML = errorMessage;
+                        passwordInputField.classList.remove("invalidInputField");
+                        passwordInputField.classList.add("validInputField");
+                    } else {
+                        passwordInputField.classList.add("invalidInputField");
+                        passwordInputField.classList.remove("validInputField");
+                        document.querySelector("#passwordErrMsg").innerHTML = errorMessage;
+                    }
+                });
+                //Second check if passwords match
+                confirmPasswordInputField.addEventListener("keyup", () => {
+                    var confirmPasswordErrMsg = document.querySelector("#confirmPasswordErrMsg");
+                    if (passwordInputField.value === confirmPasswordInputField.value) {
+                        //If there is no error, donesies
+                        confirmPasswordInputField.classList.remove("invalidInputField");
+                        confirmPasswordInputField.classList.add("validInputField");
+                        confirmPasswordErrMsg.innerHTML = "<span style='color: green;'>Passwords match</span>";
+                    } else {
+                        confirmPasswordInputField.classList.remove("validInputField");
+                        confirmPasswordInputField.classList.add("invalidInputField");
+                        confirmPasswordErrMsg.innerHTML = "<span style='color: red;'>Passwords do not match</span>";
+                    }
+                });
+                //Check if familyID matches regex pattern ^[A-Z0-9]{6}$
+                familyIDInputField.addEventListener("keyup", () => {
+                    if (/^[A-Z0-9]{6}$/.test(familyIDInputField.value)) {
+                        //Matches Regex
+                        document.querySelector("#familyIDErrMsg").innerHTML = "";
+                        familyIDInputField.classList.remove("invalidInputField");
+                        familyIDInputField.classList.add("validInputField");
+                    } else {
+                        document.querySelector("#familyIDErrMsg").innerHTML = "The Family ID should be a 6 digit ID containing only numbers and uppercase letters";
+                        familyIDInputField.classList.remove("validInputField");
+                        familyIDInputField.classList.add("invalidInputField");
+                    }
+                });
+
+                //Form onSubmit (this is not a live check because too many database calls if on every keyup)
+                //Then check if username, email already exists or if Family ID does not exist
+                function validateRegisterForm(event) {
+                    event.preventDefault();
+                    var fetchURL = `/check-registration?username=${usernameInputField.value}&email=${emailInputField.value}&parentOrChild=${parentOrChildRadioField.value}&familyID=${familyIDInputField.value}`;
+                    fetch(fetchURL, {
+                            method: "GET",
+                            headers: {
+                                "XMLHttpRequest": true
+                            }
+                        })
+                        .then((response) => response.json())
+                        .then((responseJSON) => {
+                            console.log(responseJSON);
+                            /*
+                            {
+                                usernameExists: boolean,
+                                emailExists: boolean,
+                                familyIDExists: boolean
+                            }
+                            - Username already exists ("I'm sorry but the username you were looking for has already been taken")
+                            - Email already exists ("There is already an account under this email, try logging in")
+                            - Family ID does not exist ("The family ID you entered was not correct")
+                            */
+                            //If everything checks out, remove this function out of the way and resubmit
+                            if (responseJSON.hasOwnProperty("success") && responseJSON["success"] === "true") {
+                                registerForm.removeEventListener("submit", validateRegisterForm);
+                                registerForm.submit();
+                            } else {
+                                //RIP they have errors, lay it on them
+                                if (responseJSON.usernameExists) {
+                                    document.querySelector("#usernameErrMsg").innerHTML = "I'm sorry but the username you were looking for has already been taken";
+                                    usernameInputField.classList.remove("validInputField");
+                                    usernameInputField.classList.add("invalidInputField");
+                                } else {
+                                    document.querySelector("#usernameErrMsg").innerHTML = "";
+                                    usernameInputField.classList.remove("invalidInputField");
+                                    usernameInputField.classList.add("validInputField");
+                                }
+                                if (responseJSON.emailExists) {
+                                    document.querySelector("#emailErrMsg").innerHTML = "There is already an account under this email, try logging in";
+                                    emailInputField.classList.remove("validInputField");
+                                    emailInputField.classList.add("invalidInputField");
+                                } else {
+                                    document.querySelector("#emailErrMsg").innerHTML = "";
+                                    emailInputField.classList.remove("invalidInputField");
+                                    emailInputField.classList.add("validInputField");
+                                }
+                                if (!responseJSON.familyIDExists) {
+                                    document.querySelector("#familyIDErrMsg").innerHTML = "The family ID you entered was not correct";
+                                    familyIDInputField.classList.remove("validInputField");
+                                    familyIDInputField.classList.add("invalidInputField");
+                                } else {
+                                    document.querySelector("#familyIDErrMsg").innerHTML = "";
+                                    familyIDInputField.classList.remove("invalidInputField");
+                                    familyIDInputField.classList.add("validInputField");
+                                }
+                            }
+                            //Now do nothing, the POST request has already been canceled and the user needs to correct their data
+                        });
+                }
+            </script>
         </div>
     </div>
     <div class="login main">
@@ -97,21 +288,6 @@
         </div>
     </div>
     <script>
-        var check = function() {
-            var password = document.getElementById('password');
-            var confirm_password = document.getElementById('confirm_password');
-            var errormessage = document.getElementById('errormessage');
-            var returnVal = false;
-            if (password.value == confirm_password.value) {
-                errormessage.style.color = 'green';
-                errormessage.innerHTML = 'passwords match';
-                returnVal = true;
-            } else {
-                errormessage.style.color = 'red';
-                errormessage.innerHTML = 'passwords do not match';
-            }
-            return returnVal;
-        };
         let familyidElem = document.getElementById('familyid');
         let childRadioElem = document.getElementById('childRadio');
 
@@ -122,9 +298,13 @@
         document.forms["registerForm"]["parentOrChild"].forEach((radioElement) => {
             radioElement.addEventListener("click", displayFamilyID);
         });
-
-
-
+        /*
+                familyidElem.querySelector("input").oninvalid = (event) => {
+                    //if (!familyidElem.querySelector("input").checkValidity()) {
+                    event.target.setCustomValidity("The Family ID should be a 6 digit ID containing only numbers and uppercase letters");
+                    // }
+                }
+        */
 
         var pfpImage = document.querySelector("#pfpImage");
         /*pfpImage.addEventListener("change", () => {
@@ -167,28 +347,7 @@
             }
         }
 
-
-        function validateForms(event) {
-            //event.preventDefault(); //Don't submit form
-
-            if (!check()) {
-                //Passwords don't match we are leaving
-                alert("Passwords do not match, try again");
-                return;
-            }
-
-            /**
-             * If register form
-             * make sure password and confirm password match
-             * make sure image is less than 5mb
-             */
-            return true;
-        }
-        //Add event listeners to both forms onsubmit
-        var mainForms = document.querySelectorAll(".register .mainForm form");
-        mainForms.forEach((mainForm) => {
-            mainForm.addEventListener("submit", validateForms);
-        });
+        registerForm.addEventListener("submit", validateRegisterForm);
     </script>
     <img id="trippy_twisty_tabs" src="img/trippy_twisty_tabsCropped.png" />
     <img id="trash_girl" src="img/trash_girl.png" />
