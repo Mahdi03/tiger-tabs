@@ -84,6 +84,10 @@ module.exports = {
             return returnObj;
         });
     },
+    /**
+     * This function creates object and stores it to Firebase Firestore DB after hashing password
+     * @param {object} userObj Object with user data to store
+     */
     createAccount: (userObj) => {
         /*
         var User = {
@@ -99,7 +103,7 @@ module.exports = {
         var cleanUser = {
             name: userObj.name,
             email: userObj.email,
-            username: userObj.username,
+            username: userObj.username, //The username is the unique identifier (UUID so to say??)
             hashedPassword: "",
             parentOrChild: userObj.parentOrChild,
             familyID: userObj.familyID,
@@ -135,10 +139,15 @@ module.exports = {
                 console.log(addingNewFamilyResponse);
             }
         }).then(() => {
-            console.log("WELP we got here somehow!!");
+            console.log("WELP we got here somehow!!"); //Success, the account was added
         }).catch((errors) => {
             console.error(errors);
         });
+    },
+    changePFP: (familyID, username, imgBuffer) => {
+        //Supply familyID to get doc w/ familyID then search thru accounts until find username
+
+        //Upload imgBuffer to google firebase cloud storage
     },
     /**
      * Async Function to search through Firebase Database until it finds a user match and returns the user information

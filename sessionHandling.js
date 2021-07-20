@@ -1,5 +1,5 @@
 module.exports = {
-    startUserSession: (username) => {
-
+    startUserSession: (familyID, username, parentOrChild, pfpURL) => {
+        //Store familyID, username, parentOrChild, pfpURL
     }
 }

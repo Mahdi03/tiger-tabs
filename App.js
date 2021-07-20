@@ -132,24 +132,25 @@ app.post("/register", multer.single("pfp"), (req, res) => {
         parentOrChild: req.body.parentOrChild,
         familyID: req.body.familyID
     };
-    try {
-        //Validate if password and confirm password are the same
-        if (User.password !== User.confirmPassword) {
-            //Fail, throw error and return alert("The passwords you entered do not match");
-            throw new Error("The passwords you entered do not match");
-        }
-        //Validate if email or username already exists in database
-        var accountExistsObj = {};
-        makeSureAccountDoesNotExist(User.username, User.email, User.familyID).then((listObj) => {
-            accountExistsObj = listObj;
-
-            if (!accountExistsObj.hasOwnProperty("success")) {
+    //Promise.resolve("Begin") starts a Promise chain with an already resolved promise
+    Promise.resolve("Begin").then(() => {
+            //Validate if password and confirm password are the same
+            if (User.password !== User.confirmPassword) {
+                //Fail, throw error and return alert("The passwords you entered do not match");
+                throw new Error("The passwords you entered do not match");
+            }
+        }).then(async() => {
+            //Validate if email or username already exists in database
+            return makeSureAccountDoesNotExist(User.username, User.email, User.familyID);
+        })
+        .then((listObj) => {
+            if (!listObj.hasOwnProperty("success")) {
                 //Ok well it did not work - either email/username already exists or familyID does not exist
                 //console.log("hello");
                 var errorString = "";
-                if (accountExistsObj.hasOwnProperty("usernameExists")) { errorString += "It seems this username already exists\n"; }
-                if (accountExistsObj.hasOwnProperty("emailExists")) { errorString += "It seems this email has already been used\n"; }
-                if (accountExistsObj.hasOwnProperty("familyIDExists") && Boolean(accountExistsObj["familyIDExists"]) == false) { errorString += "The Family ID you requested was not found\n"; }
+                if (listObj.hasOwnProperty("usernameExists")) { errorString += "It seems this username already exists\n"; }
+                if (listObj.hasOwnProperty("emailExists")) { errorString += "It seems this email has already been used\n"; }
+                if (listObj.hasOwnProperty("familyIDExists") && Boolean(listObj["familyIDExists"]) == false) { errorString += "The Family ID you requested was not found\n"; }
 
                 throw new Error(errorString);
             }
@@ -219,15 +220,22 @@ app.post("/register", multer.single("pfp"), (req, res) => {
             else {
                 //You opted not to have a profile picture, so the default has been assigned to you
             }*/
-        }).catch((err) => {
-            throw err;
-        });
+        })
+        .then(() => {
+            //Redirect to dashboard
+        })
+        .catch((err) => {
+            //throw err;
+            //We shouldn't be here, some part of the registration process went bad, redirect to login page?
+            console.error(e.message);
 
+        });
+    /*
     } catch (e) {
         //We shouldn't be here, some part of the registration process went bad, redirect to login page?
         console.error(e.message);
 
-    }
+    }*/
 
 
 });
@@ -307,6 +315,11 @@ app.get("/check-registration", async(req, res) => {
         res.redirect("/");
     }
 });
+//For Dashboard
+app.get("/");
+//To fetch notifications
+app.get("/fetch-notifications");
+/*
 app.post("/check-registration", (req, res) => {});
 app.get("/check-username", (req, res) => {
     //The user should not be trying to navigate to this page as it does not exist, redirect them elsewhere
@@ -326,3 +339,4 @@ app.get("/check-familyID", (req, res) => {
 app.post("/check-familyID", (req, res) => {
     //Search Firebase DB familyID, return whether familyID exists
 });
+*/
