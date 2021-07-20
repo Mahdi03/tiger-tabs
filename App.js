@@ -1,3 +1,14 @@
+const { firebaseDB } = require("./firebaseInit");
+
+
+
+
+
+
+const { generateRandomID, generateSecureString } = require("./tools");
+const { searchFirebase, makeSureAccountDoesNotExist, searchFirestoreLoginCredentials, createAccount } = require("./userHandling");
+const { startUserSession } = require("./sessionHandling");
+
 const express = require('express'); //npm install express
 const PORT = process.env.PORT || 5000;
 const path = require("path");
@@ -6,13 +17,24 @@ const app = express();
 //npm install ejs
 app.engine('html', require('ejs').renderFile); //Used to render HTML - npm install html
 app.engine('css', require('ejs').renderFile); //Used to render CSS - npm install css
-app.use(express.static(__dirname + '/public')); //Used to find "public" folder outside of folder of this script and serve CSS/JS files
-
+app.use(express.static(path.join(__dirname, 'public'))); //Used to find "public" folder outside of folder of this script and serve CSS/JS files
 app.use(
     express.urlencoded({
         extended: true
     })
 );
+const session = require("express-session");
+const FirestoreStore = require("firestore-store")(session);
+app.use(
+    session({
+        store: new FirestoreStore({
+            database: firebaseDB,
+        }),
+        secret: [process.env.SESSION_SECRET1],
+        resave: false,
+        saveUninitialized: true,
+    })
+)
 app.listen(PORT, () => {
     console.log(`Success, listening on port: ${PORT}`);
 });
@@ -53,18 +75,14 @@ app.get('/', (req, res) => {
 function checkChildOrParent() {
     return true ? 'child' : 'parent';
 }
-var hashPassword = async(password) => {
-    var salt = await bcrypt.genSalt(10); //Go through 10 layers of encryption
-    var hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
-}
 app.post("/login", async(req, res) => {
     //console.log(req);
     var username = req.body.username;
     var password = req.body.password;
     hashPassword(password).then((hashedPassword) => {
         console.log(`Username: ${username}\nHashed Password: ${hashedPassword}`);
-        //Search DB for username
+        //Search DB for username exists
+        //If username not found: throw new Error("Sorry but the username was not found"), res.doNothing
         //If exists, check password
         if (true) {
             if (true) {
@@ -83,9 +101,135 @@ app.post("/login", async(req, res) => {
 
     });
 });
-
-app.post("/register", (req, res) => {
+const Multer = require("multer");
+const multer = Multer({
+    storage: Multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024 //no larger than 5mb
+    }
+})
+app.post("/register", multer.single("pfp"), (req, res) => {
     console.log(req.body);
+    /*
+        req.body = 
+        {
+        name: '',
+        email: '',
+        username: '',
+        password: '',
+        confirmPassword: '',
+        parentOrChild: 'parent',
+        familyID: ''
+        }
+    */
+    //console.log(req.file);
+    var User = {
+        name: req.body.name,
+        email: req.body.email,
+        username: req.body.username,
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword,
+        parentOrChild: req.body.parentOrChild,
+        familyID: req.body.familyID
+    };
+    try {
+        //Validate if password and confirm password are the same
+        if (User.password !== User.confirmPassword) {
+            //Fail, throw error and return alert("The passwords you entered do not match");
+            throw new Error("The passwords you entered do not match");
+        }
+        //Validate if email or username already exists in database
+        var accountExistsObj = {};
+        makeSureAccountDoesNotExist(User.username, User.email, User.familyID).then((listObj) => {
+            accountExistsObj = listObj;
+
+            if (!accountExistsObj.hasOwnProperty("success")) {
+                //Ok well it did not work - either email/username already exists or familyID does not exist
+                //console.log("hello");
+                var errorString = "";
+                if (accountExistsObj.hasOwnProperty("usernameExists")) { errorString += "It seems this username already exists\n"; }
+                if (accountExistsObj.hasOwnProperty("emailExists")) { errorString += "It seems this email has already been used\n"; }
+                if (accountExistsObj.hasOwnProperty("familyIDExists") && Boolean(accountExistsObj["familyIDExists"]) == false) { errorString += "The Family ID you requested was not found\n"; }
+
+                throw new Error(errorString);
+            }
+        }).then(() => {
+            //Family IDs
+            //Store all family IDs into an array to search thru
+            var familyIDsArray = []; //Fill this array with family IDs from firebase
+            searchFirebase().then((listObj) => { familyIDsArray = listObj.listOfFamilyIDs; });
+            //If child:
+            if (User.parentOrChild === "child") {
+                if (User.familyID === "") {
+                    //Family ID was not provided, go back and provide Family ID to join
+                    throw new Error("Child accounts must provide a Family ID to join");
+                } else if (!familyIDsArray.includes(User.familyID)) {
+                    //Family ID was not found, go back and provide correct Family ID to join
+                    throw new Error("The Family ID you requested was not found");
+                } else if (familyIDsArray.includes(User.familyID)) {
+                    //Family ID found, join this family
+                } else {
+                    //Uh oh something went wrong, return error
+                    throw new Error("Uh what...how did we get here this isn't even possible");
+                }
+            }
+            //If parent:
+            else if (User.parentOrChild === "parent") {
+                //If family ID given, validate if family does not exist
+                if (User.familyID === "") {
+                    //Family ID was not provided, make new Family ID and check to see if it exists in DB until new unique one found
+                    function checkFamilyID() {
+                        var tempFamilyID = generateRandomID(6);
+                        if (familyIDsArray.includes(tempFamilyID)) {
+                            checkFamilyID();
+                        } else {
+                            User.familyID = tempFamilyID;
+                        }
+                    }
+                    //new Promise(checkFamilyID()).then()
+                    checkFamilyID();
+                    //Now join this family with familyID - make function in userHandling.js
+
+                } else if (!familyIDsArray.includes(User.familyID)) {
+                    //Family ID was not found, go back and provide correct Family ID to join
+                    throw new Error("The Family ID you requested was not found");
+                } else if (familyIDsArray.includes(User.familyID)) {
+                    //Family ID found, join this family
+                } else {
+                    //Uh oh something went wrong, return error
+                    throw new Error("Uh what...how did we get here this isn't even possible");
+                }
+            }
+            //If we are still here that means no errors thrown, we can make the account
+            //If all that works then good to go register
+            //Add user info to database
+            createAccount(User);
+            //Add file - use separate function to change PFP so that users can change PFP later
+            /*
+            var file = req.file;
+            if (file) {
+                uploadImageToStorage(file).then((success) => {
+                    res.status(200).send({
+                        status: 'success'
+                    });
+                }).catch((error) => {
+                    console.error(error);
+                });
+            }
+            else {
+                //You opted not to have a profile picture, so the default has been assigned to you
+            }*/
+        }).catch((err) => {
+            throw err;
+        });
+
+    } catch (e) {
+        //We shouldn't be here, some part of the registration process went bad, redirect to login page?
+        console.error(e.message);
+
+    }
+
+
 });
 
 app.post('/register.html', async(req, res) => {
@@ -136,4 +280,49 @@ app.post('/register.html', async(req, res) => {
 });
 app.get("/sign-out", (req, res) => {
     //Use express sessions here and destroy session before redir to landing page
+});
+
+//RESTful API Endpoints
+//For Register Page
+app.get("/check-registration", async(req, res) => {
+    console.log(req);
+    //Check if the request was made with XMLHttpRequest: The user should not be trying to navigate to this page as it does not exist, redirect them elsewhere
+    if (req.header("XMLHttpRequest") === "true") {
+        console.log("Successful GET request to /check-registration");
+        var username = req.query.username;
+        var email = req.query.email;
+        //var parentOrChild = req.query.parentOrChild;
+        var familyID = req.query.familyID;
+
+        /*
+        
+        */
+        makeSureAccountDoesNotExist(username, email, familyID).then((listObj) => {
+            res.status(200).json(listObj);
+        });
+        //res.status(200).json(makeSureAccountDoesNotExist(username, email, familyID));
+    }
+    //Redirect them elsewhere for trying to access an API endpoint
+    else {
+        res.redirect("/");
+    }
+});
+app.post("/check-registration", (req, res) => {});
+app.get("/check-username", (req, res) => {
+    //The user should not be trying to navigate to this page as it does not exist, redirect them elsewhere
+});
+app.post("/check-username", (req, res) => {
+    //Search Firebase DB username, return whether username exists
+});
+app.get("/check-email", (req, res) => {
+    //The user should not be trying to navigate to this page as it does not exist, redirect them elsewhere
+});
+app.post("/check-email", (req, res) => {
+    //Search Firebase DB email, return whether email exists
+});
+app.get("/check-familyID", (req, res) => {
+    //The user should not be trying to navigate to this page as it does not exist, redirect them elsewhere
+});
+app.post("/check-familyID", (req, res) => {
+    //Search Firebase DB familyID, return whether familyID exists
 });

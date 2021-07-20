@@ -222,12 +222,12 @@
                             - Family ID does not exist ("The family ID you entered was not correct")
                             */
                             //If everything checks out, remove this function out of the way and resubmit
-                            if (responseJSON.hasOwnProperty("success") && responseJSON["success"] === "true") {
+                            if (responseJSON.hasOwnProperty("success") && Boolean(responseJSON["success"])) {
                                 registerForm.removeEventListener("submit", validateRegisterForm);
                                 registerForm.submit();
                             } else {
                                 //RIP they have errors, lay it on them
-                                if (responseJSON.usernameExists) {
+                                if (responseJSON.hasOwnProperty("usernameExists") && Boolean(responseJSON["usernameExists"])) {
                                     document.querySelector("#usernameErrMsg").innerHTML = "I'm sorry but the username you were looking for has already been taken";
                                     usernameInputField.classList.remove("validInputField");
                                     usernameInputField.classList.add("invalidInputField");
@@ -236,7 +236,7 @@
                                     usernameInputField.classList.remove("invalidInputField");
                                     usernameInputField.classList.add("validInputField");
                                 }
-                                if (responseJSON.emailExists) {
+                                if (responseJSON.hasOwnProperty("emailExists") && Boolean(responseJSON["emailExists"])) {
                                     document.querySelector("#emailErrMsg").innerHTML = "There is already an account under this email, try logging in";
                                     emailInputField.classList.remove("validInputField");
                                     emailInputField.classList.add("invalidInputField");
@@ -245,7 +245,7 @@
                                     emailInputField.classList.remove("invalidInputField");
                                     emailInputField.classList.add("validInputField");
                                 }
-                                if (!responseJSON.familyIDExists) {
+                                if (responseJSON.hasOwnProperty("familyIDExists") && !Boolean(responseJSON["familyIDExists"])) {
                                     document.querySelector("#familyIDErrMsg").innerHTML = "The family ID you entered was not correct";
                                     familyIDInputField.classList.remove("validInputField");
                                     familyIDInputField.classList.add("invalidInputField");
