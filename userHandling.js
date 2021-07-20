@@ -1,5 +1,6 @@
-const { adminSDK, firebaseDB } = require("./firebaseInit");
+const { adminSDK, firebaseDB, bucket } = require("./firebaseInit");
 const { hashPassword } = require("./tools");
+const { format } = require('util');
 module.exports = {
     /**
      * searchFirebase - Function to grab collection of families and compile familyIDs, emails, and usernames
@@ -144,10 +145,52 @@ module.exports = {
             console.error(errors);
         });
     },
-    changePFP: (familyID, username, imgBuffer) => {
-        //Supply familyID to get doc w/ familyID then search thru accounts until find username
+    /**
+     * https://sdusteric.medium.com/nodejs-with-firebase-storage-c6ddcf131ceb
+     * The following function is a modified version of the above URL such that images are saved to the accounts as well
+     * @param {string} familyID Uppercase Alphanumeric 6 digit family id
+     * @param {string} username Unique account identifier (username?)
+     * @param {file} imageFile File received from Multer in App.js
+     * @returns {Promise} Returns the promise for more changing 
+     */
+    changePFP: (familyID, username, imageFile) => {
+        return new Promise(async(resolve, reject) => {
+            //Supply familyID to get doc w/ familyID then search thru accounts until find username
+            //var settingPFPURL
+            //Upload imgBuffer to google firebase cloud storage
+            if (imageFile == undefined) {
+                reject('No image file'); //There is no image file, replace with regular URL
+            } else {
+                let newFileName = `${imageFile.originalname}_${Date.now()}`;
+                newFileName = "profilePic";
 
-        //Upload imgBuffer to google firebase cloud storage
+                let fileUpload = bucket.file(newFileName);
+
+                const blobStream = fileUpload.createWriteStream({
+                    metadata: {
+                        contentType: imageFile.mimetype
+                    }
+                });
+
+                blobStream.on('error', (error) => {
+                    reject('Something is wrong! Unable to upload at the moment.');
+                });
+
+                blobStream.on('finish', () => {
+                    // The public URL can be used to directly access the file via HTTP.
+                    const url = format(`https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`);
+                    resolve(url);
+                });
+
+                blobStream.end(imageFile.buffer);
+            }
+
+        });
+
+        /** 
+         * Upload the image file to Google Storage
+         * @param {File} file object that will be uploaded to Google Storage
+         */
     },
     /**
      * Async Function to search through Firebase Database until it finds a user match and returns the user information

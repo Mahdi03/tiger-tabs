@@ -11,5 +11,5 @@ adminSDK.initializeApp({
 
 //Get user database once rn just to make sure it isn't called repetitively and prevent exceeding quotas
 const firebaseDB = adminSDK.firestore();
-
-module.exports = { adminSDK, firebaseDB };
+const bucket = adminSDK.storage().bucket();
+module.exports = { adminSDK, firebaseDB, bucket };

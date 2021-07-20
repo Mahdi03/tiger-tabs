@@ -6,7 +6,7 @@ const { firebaseDB } = require("./firebaseInit");
 
 
 const { generateRandomID, generateSecureString } = require("./tools");
-const { searchFirebase, makeSureAccountDoesNotExist, searchFirestoreLoginCredentials, createAccount } = require("./userHandling");
+const { searchFirebase, makeSureAccountDoesNotExist, searchFirestoreLoginCredentials, createAccount, changePFP } = require("./userHandling");
 const { startUserSession } = require("./sessionHandling");
 
 const express = require('express'); //npm install express
@@ -105,11 +105,11 @@ const Multer = require("multer");
 const multer = Multer({
     storage: Multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024 //no larger than 5mb
+        fileSize: 2 * 1024 * 1024 //no larger than 2mb
     }
 })
-app.post("/register", multer.single("pfp"), (req, res) => {
-    console.log(req.body);
+app.post("/register", multer.single("pfpImage"), (req, res) => {
+    console.log(req.file);
     /*
         req.body = 
         {
@@ -220,6 +220,7 @@ app.post("/register", multer.single("pfp"), (req, res) => {
             else {
                 //You opted not to have a profile picture, so the default has been assigned to you
             }*/
+            changePFP(User.familyID, User.username, req.file).then(console.log);
         })
         .then(() => {
             //Redirect to dashboard
@@ -227,7 +228,7 @@ app.post("/register", multer.single("pfp"), (req, res) => {
         .catch((err) => {
             //throw err;
             //We shouldn't be here, some part of the registration process went bad, redirect to login page?
-            console.error(e.message);
+            console.error(err.message);
 
         });
     /*

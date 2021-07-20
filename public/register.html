@@ -70,8 +70,8 @@
                                 <p id="familyIDErrMsg"></p>
                                 <strong style="font-size: 1.5rem;">Family ID:</strong><input type="text" name="familyID" pattern="[A-Z0-9]{6}" placeholder="Family ID..." /><span></span>
                             </div>
-                            <p style="margin-bottom: 0;">Last step, go ahead and upload a profile picture (less than 5MB) so your family can see who you are:</p>
-                            <input type="file" accept="image/png, image/jpeg" onchange="preview_image(event)" />
+                            <p style="margin-bottom: 0;">Last step, go ahead and upload a profile picture (less than 2MB) so your family can see who you are:</p>
+                            <input type="file" name="pfpImage" accept="image/png, image/jpeg" onchange="preview_image(event)" />
                         </div>
                         <!--Preview Image-->
                         <img id="output_image" src="a.a" alt="Select an image" />
@@ -333,8 +333,8 @@
             var output = document.getElementById('output_image');
             output.setAttribute("alt", "Loading...");
             var pfpImageFileSize = event.target.files.item(0).size;
-            if (Math.round(pfpImageFileSize / 1024) >= 5120) {
-                alert("Image file is too large, must be less than 5MB"); //Exit this and try again
+            if (Math.round(pfpImageFileSize / 1024) >= 2048) {
+                alert("Image file is too large, must be less than 2MB"); //Exit this and try again
                 return;
             } else {
                 //Image is of size
