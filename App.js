@@ -7,6 +7,7 @@ const { firebaseDB } = require("./firebaseInit");
 
 const { generateRandomID, generateSecureString } = require("./tools");
 const { searchFirebase, makeSureAccountDoesNotExist, searchFirestoreLoginCredentials, createAccount, changePFP } = require("./userHandling");
+const { returnFamilyObject } = require("./databaseHandling");
 const { startUserSession } = require("./sessionHandling");
 
 const express = require('express'); //npm install express
@@ -317,7 +318,33 @@ app.get("/check-registration", async(req, res) => {
     }
 });
 //For Dashboard
-app.get("/");
+app.get("/fetch-tasks", (req, res) => {
+    var familyID = req.query.familyID;
+    //Get family tasks from firestore DB and send JSON back to front-end 
+    returnFamilyObject(familyID).then((familyObject) => {
+        //Filter out tasks object and convert to new active tasks and sort into active or "up-for-grabs" tasks
+        var currentTasks = [];
+        var activeTasks = [];
+        familyObject["tasks"].forEach((task) => {
+            if (task["childDoingTask"] == "") {
+                //If the string is empty, the task is up for grabs, store as currentTask
+                currentTasks.push(task);
+            } else {
+                //The string is full, save task as activeTask
+                activeTasks.push(task);
+            }
+        });
+        var returnObject = {
+            currentTasks: currentTasks,
+            activeTasks: activeTasks
+        }
+        res.status(200).json(returnObject);
+    });
+});
+app.get("/add-task", (req, res) => {
+    var jsonTask = JSON.parse(req.query.jsonTask); //Stringified on front-end
+
+});
 //To fetch notifications
 app.get("/fetch-notifications");
 /*

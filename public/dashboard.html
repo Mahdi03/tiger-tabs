@@ -119,6 +119,33 @@
             </tr>
         </table>
     </div>
+    <script>
+        function loadTasks() {
+            var fetchURL = ``;
+            fetch(fetchURL, {
+                    method: "GET",
+                    headers: {
+                        "XMLHttpRequest": true
+                    }
+                }).then((response) => response.json())
+                .then((responseJSON) => {
+                    console.log(responseJSON);
+                });
+        }
+
+        function addTask(taskObj) {
+            var fetchURL = `/add-task?jsonTask=` + encodeURIComponent(JSON.stringify(taskObj));
+            fetch(fetchURL, {
+                    method: "GET",
+                    headers: {
+                        "XMLHttpRequest": true
+                    }
+                }).then((response) => response.json())
+                .then((responseJSON) => {
+                    console.log(responseJSON);
+                });
+        }
+    </script>
     <img id="trippy_twisty_tabs" src="img/trippy_twisty_tabsCropped.png" />
     <img id="trash_girl" src="img/trash_girl.png" />
     <img id="moneybags_dad" src="img/moneybags_dad.png" />
